@@ -50,6 +50,7 @@ fixtures to work against.
 | `retainer_plate.py` | `STEP/retainer_plate.step` | Retainer plate with elongated slot, two circular holes, and chamfered perimeter |
 | `shaft_collar.py` | `STEP/shaft_collar.step` | Shaft collar with a central bore, radial set-screw hole, and chamfered faces |
 | `small_enclosure_cover.py` | `STEP/small_enclosure_cover.step` | Small enclosure cover with raised rim, corner screw holes, and shallow recessed center |
+| `socket_head_cap_screw.py` | `STEP/socket_head_cap_screw.step` | Socket head cap screw (DIN 912), M10 x 40, hex socket, real swept helical ISO thread and a 45 deg point |
 | `spur_gear_blank.py` | `STEP/spur_gear_blank.step + STL/spur_gear_blank.stl, 3MF/spur_gear_blank.3mf, GLB/spur_gear_blank.glb` | Spur gear blank with central bore, raised hub, and simplified perimeter teeth |
 | `square_mounting_block.py` | `STEP/square_mounting_block.step` | Square mounting block with a vertical through-hole and two side clearance holes |
 | `stepped_shaft_keyway.py` | `STEP/stepped_shaft_keyway.step` | Stepped shaft with keyway model |

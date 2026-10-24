@@ -133,7 +133,7 @@ function Placeholders({ layout }: { layout: LibraryLayout }) {
  * (`wantsPicture`) is handed to `picture`, where the viewer draws one out of sight — one card at a
  * time, each once while the page is up — and the list is read again once one is kept.
  */
-export function ModelLibrary<Model extends LibraryModel>({ library, layout = "grid", onLayoutChange, picture, links, update, fullSize, onError }: {
+export function ModelLibrary<Model extends LibraryModel>({ library, layout = "grid", onLayoutChange, picture, links, update, fullSize, home, onError }: {
   library: ModelLibrarySource<Model>;
   /** Grid or list; the host keeps the choice (the tab's settings). */
   layout?: LibraryLayout;
@@ -146,6 +146,8 @@ export function ModelLibrary<Model extends LibraryModel>({ library, layout = "gr
   update?: ReactNode;
   /** The host's Full size button, last in that row, where it shows the view small. */
   fullSize?: ReactNode;
+  /** A host's own action above the recent files, as a complete surface it owns. */
+  home?: ReactNode;
   onError?(error: Error): void;
 }) {
   const [items, setItems] = useState<readonly Model[] | null>(null);
@@ -253,6 +255,7 @@ export function ModelLibrary<Model extends LibraryModel>({ library, layout = "gr
         <HomeLinks links={links} onError={onError} />
         {fullSize}
       </nav> : null}
+      {home}
       <div className="cad-library-toolbar">
         <h1 className="cad-library-heading">Recent Files</h1>
         <div className="cad-library-controls">

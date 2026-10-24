@@ -13,7 +13,7 @@ vi.mock('@text-to-cad/ui/cad-viewer', async original => {
   return {
     ...await original<object>(),
     // The host's notice, if it had one, drawn as the real viewer would once a model is on screen.
-    CadViewer: (props: CadViewerProps) => { viewer.props = props; useEffect(() => { viewer.mounts += 1; }, []); return <>{props.update ?? null}{props.fullSize ?? null}{props.notice ?? null}</>; },
+    CadViewer: (props: CadViewerProps) => { viewer.props = props; useEffect(() => { viewer.mounts += 1; }, []); return <>{props.update ?? null}{props.fullSize ?? null}{props.notice ?? null}{props.homeAction ?? null}</>; },
   };
 });
 
@@ -75,6 +75,7 @@ it('a tab host gets the page it always had, down to its bottom: the home, with n
   // The home is the viewer with nothing open: its library, with this computer's Open.
   expect(viewer.props!.file).toBe('');
   expect(typeof viewer.props!.library!.pick).toBe('function');
+  expect(container.querySelector('h2')?.textContent).toBe('Generate CAD geometry');
   expect(container.querySelector('[aria-label="Full size"]')).toBeNull();
   expect(sized(bridge.notify)).toEqual([]);
   // The host's composer floats over the page's bottom: no strip is kept for it, preview's playbar

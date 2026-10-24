@@ -24,12 +24,13 @@ function library(models: LibraryModel[], extra: Partial<ModelLibrarySource> = {}
 it('heads the home with the TEXTTOCAD wordmark over GitHub, Discord and X, the host\'s update button first when there is one; no tagline', async () => {
   const links = { version: '0.7.4', release: 'r', x: 'https://x.com/earthtojake', github: 'https://github.com/earthtojake/text-to-cad', discord: 'https://discord.gg/x',
     issues: 'https://github.com/earthtojake/text-to-cad/issues/new' };
-  render(<ModelLibrary library={library([])} links={links} />);
+  render(<ModelLibrary library={library([])} links={links} home={<button type="button" aria-label="Generate" />} />);
   const nav = await screen.findByRole('navigation', { name: 'CAD links' });
   expect(screen.getByRole('img', { name: 'text-to-cad' }).getAttribute('src')).toMatch(/texttocad/);
   // Links, not a menu: the person's settings are the app menu's, from a file's navbar.
   expect([...nav.querySelectorAll('a, button')].map(node => [node.getAttribute('aria-label'), node.getAttribute('href')]))
     .toEqual([['GitHub', links.github], ['Discord', links.discord], ['X', links.x]]);
+  expect(nav.nextElementSibling).toEqual(screen.getByRole('button', { name: 'Generate' }));
   expect(screen.queryByText('Build things')).toBeNull();
   cleanup();
   // The host's update button, while its install is behind: a row of its own above the links, labeled

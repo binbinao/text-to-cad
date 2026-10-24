@@ -20,6 +20,7 @@ import { createViewSync } from './host/sync';
 import { createTunnelClient, createTunnelFetch } from './host/tunnel';
 import ModelView, { type ViewReporter } from './ModelView';
 import { Banner } from './Notice';
+import GenerateModel from './client/GenerateModel';
 
 interface Showing { launch: Launch; sequence: number }
 
@@ -198,6 +199,11 @@ export default function App({ bridge, server, launch: initial, presentation = 't
   const sendPrompt = chat.send
     ? (prompt: string) => bridge.request('ui/message', { role: 'user', content: [{ type: 'text', text: prompt }] }, { timeoutMs: 30_000 }).then(() => {})
     : undefined;
+  const queuePrompt = !chat.send && chat.queue
+    ? (prompt: string) => bridge.request('ui/update-model-context', {
+      content: [{ type: 'text', text: prompt, _meta: { 'openai/title': 'Generate CAD geometry' } }],
+    }, { timeoutMs: 15_000 }).then(() => {})
+    : undefined;
   const openLink = (url: string) => void bridge.request('ui/open-link', { url }).catch(() => {});
   // The navbar's links: the same as every app's (X, Discord, GitHub and a new issue), followed through the
   // host (a frame cannot open one itself).
@@ -214,6 +220,7 @@ export default function App({ bridge, server, launch: initial, presentation = 't
       update={updateNotice ? <UpdateButton notice={updateNotice} send={sendPrompt} copy={prompt => frameClipboard.writeText(prompt)}
         onLink={openLink} /> : null}
       fullSize={inline && context.availableDisplayModes?.includes('fullscreen') !== false ? <FullSizeButton bridge={bridge} /> : null}
+      homeAction={<GenerateModel send={sendPrompt} queue={queuePrompt} copy={prompt => frameClipboard.writeText(prompt)} />}
       colorScheme={colorScheme} platform={initial.platform || 'darwin'} reporter={reporter} sync={sync} chat={chat} />
   </Frame>;
 }

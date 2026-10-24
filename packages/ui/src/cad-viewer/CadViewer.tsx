@@ -64,6 +64,8 @@ export interface CadViewerProps<Model extends LibraryModel = LibraryModel> {
    * show it full size: in the navbar over every file, before the view's own controls, and last in the home's row.
    */
   fullSize?: ReactNode;
+  /** The host's own action on the home, above the recent files. */
+  homeAction?: ReactNode;
   /**
    * The view's own history, where the host keeps one rather than a browser (the CAD app's views):
    * Back and Forward in the navbar over every file, between its logo and the file's name.
@@ -85,7 +87,7 @@ const reportError = (error: Error) => console.error(error);
  * navigates: showing a file, or the home, is the host's `onShow`.
  */
 export function CadViewer<Model extends LibraryModel = LibraryModel>({ client, host, tabStore, live, file, onShow, onShown,
-  library, onThumbnail, displayActions, appSettings, features, notice, update, fullSize, history, onError = reportError }: CadViewerProps<Model>) {
+  library, onThumbnail, displayActions, appSettings, features, notice, update, fullSize, homeAction, history, onError = reportError }: CadViewerProps<Model>) {
   const preferences = tabStore.settings;
   // One viewer renderer per file family, sharing one client and the tab's preferences; each
   // lazy-loads only its own code.
@@ -169,12 +171,12 @@ export function CadViewer<Model extends LibraryModel = LibraryModel>({ client, h
   const goHome = useMemo(() => homed ? <Button size="sm" variant="outline" onClick={home}>Go home</Button> : null, [homed, home]);
   const presentation = useMemo(() => ({
     home: library ? <ModelLibrary library={library} layout={layout} onLayoutChange={changeLayout} picture={picture}
-      links={host.links} update={update} fullSize={fullSize} onError={onError} /> : undefined,
+      links={host.links} update={update} fullSize={fullSize} home={homeAction} onError={onError} /> : undefined,
     loading: <div className="relative h-full"><ViewerLoadingOverlay viewerLoading /></div>,
     error: ({ message, missing }: { message: string; missing: boolean }) => missing
       ? <EmptyState icon={FileX} title="File does not exist" description={path} tone="warn" action={goHome} />
       : <EmptyState icon={FileWarning} title="Could not open that file" description={message} tone="warn" action={goHome} />,
-  }), [library, layout, changeLayout, path, picture, host.links, update, fullSize, onError, goHome]);
+  }), [library, layout, changeLayout, path, picture, host.links, update, fullSize, homeAction, onError, goHome]);
   return <>
     <FileViewer file={path || null} host={viewerHost} renderers={renderers} state={state} onStateChange={onStateChange}
       displayActions={displayActions} appSettings={appSettings} update={update} fullSize={fullSize} history={history} features={features} notice={notice} onError={onError} presentation={presentation} />

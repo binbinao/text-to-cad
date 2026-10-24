@@ -44,6 +44,7 @@ One script per group: the assembly is composed inside one model body.
 | `motorcycle_shock_absorber/motorcycle_shock_absorber.py` | `STEP/motorcycle_shock_absorber/motorcycle_shock_absorber.step` | Motorcycle rear shock absorber (coilover damper) assembly |
 | `pelican_riding_bicycle/pelican_riding_bicycle.py` | `STEP/pelican_riding_bicycle/pelican_riding_bicycle.step` | Pelican riding a bicycle (organic + mechanical mix) |
 | `photo_coffee_cup/photo_coffee_cup.py` | `STEP/photo_coffee_cup/photo_coffee_cup.step` | Photo-inspired takeaway coffee cup model |
+| `psyduck/psyduck.py` | `STEP/psyduck/psyduck.step` | Psyduck figurine, ~120 mm, hands to its head, with a wide flat bill and three plumes |
 | `planetary_gear_assembly/planetary_gear_assembly.py` | `STEP/planetary_gear_assembly/planetary_gear_assembly.step + STL/planetary_gear_assembly/planetary_gear_assembly.stl, 3MF/planetary_gear_assembly/planetary_gear_assembly.3mf, GLB/planetary_gear_assembly/planetary_gear_assembly.glb` | Labeled simplified planetary gear assembly |
 | `planetary_gear_stage/planetary_gear_stage.py` | `STEP/planetary_gear_stage/planetary_gear_stage.step` | Simplified planetary gear assembly |
 | `robotic_hand_end_effector/robotic_hand_end_effector.py` | `STEP/robotic_hand_end_effector/robotic_hand_end_effector.step` | Labeled cybernetic robotic hand end-effector STEP assembly |

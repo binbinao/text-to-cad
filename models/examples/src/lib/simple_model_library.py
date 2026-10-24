@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from math import cos, sin, tau
+from math import cos, radians, sin, tan, tau
 
 from cadgen import build123d as bd
 
@@ -433,3 +433,127 @@ def make_mounting_plate():
 
     part = _safe_fillet(model.part, _line_edges(model.part), 0.8)
     return _finish(part, "mounting_plate_central_cutout_side_slot_four_corner_holes_rounded_edges", bd.Color(0.58, 0.65, 0.69, 1.0))
+
+
+# ---------------------------------------------------------------------------
+# Threaded fasteners. The thread is a REAL helix, not the pitch-diameter
+# cylinder shortcut: the ridge section is swept along a helical path with the
+# Frenet frame, which is what holds that section in the radial plane.
+# ---------------------------------------------------------------------------
+
+# ISO 261 coarse pitch, mm, by nominal diameter.
+_SCREW_COARSE_PITCH = {3: 0.5, 4: 0.7, 5: 0.8, 6: 1.0, 8: 1.25, 10: 1.5, 12: 1.75, 16: 2.0}
+# DIN 912 socket head cap: head dia dk, head height k, socket across-flats s,
+# socket depth t.
+_SCREW_SOCKET_HEAD = {
+    6: (10.0, 6.0, 5.0, 3.0),
+    8: (13.0, 8.0, 6.0, 4.0),
+    10: (16.0, 10.0, 8.0, 5.0),
+    12: (18.0, 12.0, 10.0, 6.0),
+}
+# ISO 68-1 basic profile: the 60 degree flanks are truncated at the crest by
+# H/8 and at the root by H/6, which against the pitch gives these flat widths.
+_THREAD_CREST_FLAT = 1.0 / 8.0
+_THREAD_ROOT_FLAT = 1.0 / 6.0
+
+
+def make_socket_head_cap_screw(
+    nominal_diameter: float = 10.0,
+    shank_length: float = 40.0,
+    *,
+    tip_flat_fraction: float = 0.15,
+):
+    """DIN 912 / ISO 4762 socket head cap screw with a real ISO metric thread.
+
+    Frame: +Z is the screw axis, the tip sits on z=0 and the head is on top, so
+    the seating face a length is called out from -- the head underside -- is the
+    plane z=shank_length. Dimensions come from the DIN tables for the nearest
+    nominal diameter; an off-table size falls back to proportionate head
+    proportions rather than raising.
+    """
+    nominal = min(_SCREW_COARSE_PITCH, key=lambda d: abs(d - nominal_diameter))
+    pitch = _SCREW_COARSE_PITCH[nominal]
+    head_dia, head_height, socket_af, socket_depth = _SCREW_SOCKET_HEAD.get(
+        nominal,
+        (
+            1.6 * nominal_diameter,
+            1.0 * nominal_diameter,
+            0.8 * nominal_diameter,
+            0.5 * nominal_diameter,
+        ),
+    )
+
+    major_radius = nominal_diameter / 2.0
+    # Basic external thread: the root sits 1.226869*p below the crest.
+    root_radius = (nominal_diameter - 1.226869 * pitch) / 2.0
+    half_crest = _THREAD_CREST_FLAT * pitch / 2.0
+    # Carry the ridge below the root so the union with the core is a real
+    # overlap rather than a coincident-face tangency.
+    root_embed = 0.25 * pitch
+    half_root = (_THREAD_ROOT_FLAT * pitch + 2.0 * root_embed * tan(radians(30.0))) / 2.0
+    tip_flat_radius = tip_flat_fraction * nominal_diameter
+    tip_length = major_radius - tip_flat_radius
+    seating_z = shank_length
+    head_top = seating_z + head_height
+
+    with bd.BuildPart() as model:
+        bd.Cylinder(root_radius, shank_length, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
+        with bd.Locations(bd.Location((0.0, 0.0, seating_z))):
+            bd.Cylinder(head_dia / 2.0, head_height, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
+
+    with bd.BuildSketch(bd.Plane.XZ) as thread_section:
+        with bd.BuildLine():
+            bd.Polyline(
+                (root_radius - root_embed, -half_root),
+                (major_radius, -half_crest),
+                (major_radius, half_crest),
+                (root_radius - root_embed, half_root),
+                close=True,
+            )
+        bd.make_face()
+
+    helix = bd.Helix(pitch=pitch, height=shank_length, radius=root_radius)
+    # `is_frenet` is what holds the section in the radial plane: the corrected
+    # frame twists it round the path, which overshoots the major diameter.
+    ridge = bd.sweep(thread_section.sketch, path=helix, is_frenet=True)
+
+    part = model.part + ridge
+    # The swept ridge overhangs the tip by half a root flat; drop that sliver.
+    part = part - bd.Box(
+        4.0 * head_dia,
+        4.0 * head_dia,
+        tip_length + pitch,
+        align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MAX),
+    )
+    # 45 degree point: subtract the ring between a shroud and a cone, never the
+    # bare cone, which widens past the core and would cut the shank in two.
+    part = part - (
+        bd.Cylinder(
+            major_radius + 0.05,
+            tip_length,
+            align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN),
+        )
+        - bd.Cone(
+            bottom_radius=tip_flat_radius,
+            top_radius=major_radius,
+            height=tip_length,
+            align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN),
+        )
+    )
+
+    socket_radius = socket_af / 2.0 / cos(radians(30.0))
+    with bd.BuildSketch(bd.Plane.XY.offset(head_top + 1.0)) as socket:
+        bd.RegularPolygon(radius=socket_radius, side_count=6)
+    part = part - bd.extrude(socket.sketch, amount=-(socket_depth + 1.0))
+
+    part = _safe_chamfer(
+        part,
+        _circular_edges(part, radius=head_dia / 2.0, axis="z", coordinate=head_top),
+        0.1 * head_height,
+    )
+    return _finish(
+        part,
+        f"socket_head_cap_screw_m{nominal_diameter:g}x{shank_length:g}"
+        "_hex_socket_iso_helical_thread_chamfered_head",
+        bd.Color(0.55, 0.58, 0.62, 1.0),
+    )
