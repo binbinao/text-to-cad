@@ -7,3 +7,42 @@
 }
 
 .cad-notice { display: grid; place-items: center; height: 100%; padding: 24px; box-sizing: border-box; }
+
+.cad-generator {
+  width: min(680px, 100%);
+  margin: 20px auto 24px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  box-sizing: border-box;
+}
+.cad-generator h1 { margin: 0 0 12px; font-size: 15px; font-weight: 600; letter-spacing: 0; }
+.cad-generator form { display: grid; gap: 12px; }
+.cad-generator textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--input);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+.cad-generator textarea:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent); }
+.cad-generator-controls { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.cad-generator fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.cad-generator legend { margin-bottom: 6px; color: var(--muted-foreground); font-size: 11px; }
+.cad-generator [role="radiogroup"] { display: grid; grid-template-columns: repeat(4, minmax(56px, 1fr)); gap: 6px; }
+.cad-generator [role="radiogroup"] button { width: 100%; }
+.cad-generator [role="status"] { min-height: 16px; margin: 10px 0 0; font-size: 11px; }
+
+@media (max-width: 640px) {
+  .cad-generator { margin-top: 14px; padding: 12px; }
+  .cad-generator-controls { align-items: stretch; flex-direction: column; }
+  .cad-generator-controls > button { width: 100%; }
+  .cad-generator [role="radiogroup"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -410,7 +410,94 @@ wheel 是 cadquery-ocp 项目构建的，**签名不是本仓库能做的事**�
 
 ---
 
-## 7. 外部依赖清单（都得你自己装）
+## 7. 前端启动与验证
+
+### 7.1 日常使用：不用自己启动前端
+
+装好插件后，**Codex 会自己启动 `cadgen mcp` 并加载 CAD 前端**。打开侧边栏的
+**CAD**（或线程旁的 CAD 标签页）就能看到主页：
+
+1. 在 **Generate CAD geometry** 里输入几何需求，例如
+   `一个 40 x 20 x 6 mm 的安装板，四角有 5.5 mm 孔`。
+2. 选择输出格式：`STEP`、`STL`、`3MF` 或 `GLB`。
+3. 点 **Generate**。前端把这条请求发给当前线程的 agent；agent 调 `cad` 技能生成文件，
+   再把结果展示在同一个 CAD 视图里。
+
+前端本身**不执行 CAD 内核，也不写文件**。它只是把提示词和格式要求送到 agent；
+真正的生成仍然走模型脚本和 cadgen，产物规则、缓存、检查流程都和第 3 节一致。
+
+宿主能力不同时的表现：
+
+| 宿主能力 | 按钮/结果 |
+| --- | --- |
+| 能向聊天发消息（Codex 线程 CAD 标签页） | **Generate**，直接作为你的消息发给 agent |
+| 只能把内容放进下一条消息 | **Add to chat**，提示词进入 composer，你确认后再发送 |
+| 两者都没有 | **Copy prompt**，复制后手动粘贴 |
+
+这不是降级失败：能力由宿主声明，前端只走可用的那条路。
+
+### 7.2 开发这个前端
+
+MCP 前端是 `apps/mcp`，但它**没有独立的 `npm run dev` 页面**。它是宿主加载的一个
+内嵌单文件应用，必须在 MCP Apps 桥接环境里运行；直接用 Vite 起一个页面没有
+`bridge`，不能代表真实行为。
+
+开发流程：
+
+```bash
+# 1. 安装相关 workspace 依赖（Node 22，npm）
+npm ci --workspace @text-to-cad/ui --workspace @text-to-cad/mcp
+
+# 2. 构建共享包和 MCP 前端
+npm run build:mcp
+
+# 3. 跑前端单测
+npm run test -w @text-to-cad/mcp
+
+# 4. 安装到 Codex 并重启宿主；脚本会先构建，再替换本地插件
+scripts/install/dev_install.py codex --restart
+
+# 已手动 build:mcp 时可跳过构建
+scripts/install/dev_install.py codex --no-build --restart
+
+# Claude Desktop / Claude Code
+scripts/install/dev_install.py claude-desktop
+scripts/install/dev_install.py claude
+```
+
+checkout 里的 `cadgen mcp` 默认使用 `apps/mcp/dist/index.html`；`CADGEN_MCP_APP_DIR`
+可以显式指向另一个构建目录。发布 wheel 里的前端则来自打包时的
+`cadgen/_runtime/mcp`，不要把 `apps/mcp/dist` 提交进 git。
+
+改动范围和建议检查：
+
+| 改了什么 | 至少跑什么 |
+| --- | --- |
+| `apps/mcp/src/**` | `npm run test -w @text-to-cad/mcp`、`npm run build:mcp` |
+| `packages/ui/**`（共享界面） | `npm run build:packages`、UI 定向测试、`npm run check:boundaries` |
+| 宿主桥接 / 提示词能力 | 再用 `dev_install.py` 在 Codex 或 Claude Desktop 里实际点一遍 |
+
+### 7.3 浏览器 CAD Viewer 是另一个入口
+
+如果只是要看本机已有 CAD 文件，用浏览器 Viewer：
+
+```bash
+cadgen viewer --host 127.0.0.1 --json --detach
+```
+
+从输出 JSON 里读 `url`，不要猜端口。开发 Web Viewer 时：
+
+```bash
+npm run dev:web        # 构建共享包，然后启动 Vite + checkout 后端
+npm run build:web      # 生产构建
+```
+
+Web Viewer 没有 MCP 聊天桥接，也没有 **Generate CAD geometry** 表单；它负责浏览和
+查看文件。生成入口在 MCP CAD 前端，不要把两个启动流程混在一起。
+
+---
+
+## 8. 外部依赖清单（都得你自己装）
 
 | 依赖 | 谁需要 | 怎么装 |
 | --- | --- | --- |

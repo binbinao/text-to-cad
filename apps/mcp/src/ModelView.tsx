@@ -30,7 +30,7 @@ export interface ViewReporter {
  * Codex's file handler (`surface: file`, `alone`) shows its file alone: the host's own file tree is
  * its navigation.
  */
-export default function ModelView({ launch, sequence, alone = false, bridge, client, tunnel, tabStore, live, links, colorScheme, platform, reporter, sync, chat, appSettings, features, update, fullSize }: {
+export default function ModelView({ launch, sequence, alone = false, bridge, client, tunnel, tabStore, live, links, colorScheme, platform, reporter, sync, chat, appSettings, features, update, fullSize, homeAction }: {
   launch: Launch; sequence: number; bridge: Bridge; tabStore: TabStore; live: LiveRegistry; links: ViewerLinks;
   /**
    * The view shows the one file its host opened, and nothing else (Codex's file handler): no home,
@@ -55,6 +55,8 @@ export default function ModelView({ launch, sequence, alone = false, bridge, cli
   update?: ReactNode;
   /** Inline, the card's way to full size, where the host can show it so: in the navbar, before the view's controls, and last on the home. */
   fullSize?: ReactNode;
+  /** The host's own action above the recent files. */
+  homeAction?: ReactNode;
 }) {
   // Codex's file handler shows its file alone: the host's own file tree is its navigation, so it
   // has neither the home nor the explorer (a source that cannot list or search offers none).
@@ -131,6 +133,6 @@ export default function ModelView({ launch, sequence, alone = false, bridge, cli
   // The file on screen joins the library every CAD view shares, with its picture.
   return <CadViewer client={client} host={host} tabStore={tabStore} live={live} file={file} onShow={navigate}
     onShown={path => { if (path) void client.changeRecents({ action: 'open', path }).catch(() => {}); }}
-    library={library} appSettings={appSettings} features={features} update={update} fullSize={fullSize} history={viewerHistory}
+    library={library} appSettings={appSettings} features={features} update={update} fullSize={fullSize} homeAction={homeAction} history={viewerHistory}
     onThumbnail={(png, pictured) => client.keepThumbnail(png, pictured)} />;
 }
